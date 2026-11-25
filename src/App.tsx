@@ -2,6 +2,9 @@ import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
 import Layout from './components/Layout'
 import Login from './pages/Login'
 import { Beranda, Profil, Segera } from './pages/Pages'
+import Dompet from './pages/Dompet'
+import Tambah from './pages/Tambah'
+import Pengaturan from './pages/Pengaturan'
 
 export default function App() {
   return (
@@ -10,9 +13,10 @@ export default function App() {
         <Route path="/masuk" element={<Login />} />
         <Route element={<Layout />}>
           <Route index element={<Beranda />} />
-          <Route path="dompet" element={<Segera t="Dompet" s="Atur semua sumber uangmu." />} />
+          <Route path="dompet" element={<Dompet />} />
           <Route path="transaksi" element={<Segera t="Transaksi" s="Ke mana uangmu pergi?" />} />
-          <Route path="tambah" element={<Segera t="Catat transaksi" s="Layar input cepat." />} />
+          <Route path="tambah" element={<Tambah />} />
+          <Route path="pengaturan" element={<Pengaturan />} />
           <Route path="profil" element={<Profil />} />
         </Route>
         <Route path="*" element={<Navigate to="/" replace />} />

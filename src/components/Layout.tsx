@@ -1,5 +1,6 @@
 import { Navigate, Outlet } from 'react-router-dom'
 import { useAuth } from '../lib/auth'
+import { DataProvider } from '../lib/data'
 import BottomNav from './BottomNav'
 
 export default function Layout() {
@@ -9,7 +10,9 @@ export default function Layout() {
   return (
     <>
       <main className="mx-auto max-w-md px-4 pt-5 pb-36">
-        <Outlet />
+        <DataProvider uid={user.uid}>
+          <Outlet />
+        </DataProvider>
       </main>
       <BottomNav />
     </>

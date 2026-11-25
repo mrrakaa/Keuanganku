@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom'
 import { useAuth } from '../lib/auth'
 import { useTheme, type ModePref, type Palette } from '../lib/theme'
 
@@ -66,6 +67,7 @@ export function Profil() {
         <p className="kicker">Mode</p>
         <Seg<ModePref> value={mode} onChange={setMode} options={[{ v: 'system', l: 'Ikuti sistem' }, { v: 'light', l: 'Terang' }, { v: 'dark', l: 'Gelap' }]} />
       </section>
+      <Link to="/pengaturan" className="card mb-3 block text-center font-bold">Kelola wallet & kategori</Link>
       <button onClick={() => void signOut()} className="h-12 w-full rounded-2xl border border-line bg-surface font-bold">
         Keluar
       </button>
