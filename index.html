@@ -1,10 +1,22 @@
 <!doctype html>
-<html lang="en">
+<html lang="id">
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>keuanganku</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="theme-color" content="#FDF4F6" />
+    <link rel="apple-touch-icon" href="/icons/icon-192.png" />
+    <title>Keuanganku</title>
+    <script>
+      try {
+        var s = JSON.parse(localStorage.getItem('keuanganku.theme') || '{}');
+        var m = s.mode || 'system';
+        var dark = m === 'dark' || (m === 'system' && matchMedia('(prefers-color-scheme: dark)').matches);
+        var el = document.documentElement;
+        el.dataset.theme = s.palette === 'neon' ? 'neon' : 'pink';
+        el.dataset.mode = dark ? 'dark' : 'light';
+      } catch (e) {}
+    </script>
   </head>
   <body>
     <div id="root"></div>
