@@ -6,7 +6,7 @@ import type { Category, Template, Wallet } from './types'
 interface DataCtx { wallets: Wallet[]; categories: Category[]; templates: Template[]; ready: boolean; error: string | null }
 const Ctx = createContext<DataCtx | null>(null)
 
-function useCol<T>(uid: string, name: string, onError: (m: string) => void) {
+export function useCol<T>(uid: string, name: string, onError: (m: string) => void) {
   const [items, setItems] = useState<T[]>([])
   const [ready, setReady] = useState(false)
   useEffect(

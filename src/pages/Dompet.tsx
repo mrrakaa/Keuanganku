@@ -19,12 +19,12 @@ export default function Dompet() {
       {aktif.length === 0 && (
         <p className="card text-muted">Belum ada wallet. <Link to="/pengaturan" className="font-bold text-ink underline">Tambah di sini</Link>.</p>
       )}
-      {(Object.keys(KIND_LABEL) as WalletKind[]).map((k) => {
-        const list = aktif.filter((w) => w.kind === k)
+      {([...(Object.keys(KIND_LABEL) as WalletKind[]), 'vault'] as const).map((k) => {
+        const list = k === 'vault' ? aktif.filter((w) => w.jenis === 'vault') : aktif.filter((w) => w.kind === k && w.jenis !== 'vault')
         if (!list.length) return null
         return (
           <section key={k} className="mb-3">
-            <div className="mx-1 mb-1 flex justify-between"><span className="kicker">{KIND_LABEL[k]}</span><span className="kicker">{formatRp(list.reduce((s, w) => s + w.balance, 0))}</span></div>
+            <div className="mx-1 mb-1 flex justify-between"><span className="kicker">{k === 'vault' ? 'Kantong goal' : KIND_LABEL[k]}</span><span className="kicker">{formatRp(list.reduce((s, w) => s + w.balance, 0))}</span></div>
             <div className="card divide-y divide-line !py-1">
               {list.map((w) => (
                 <div key={w.id} className="flex items-center justify-between py-3">

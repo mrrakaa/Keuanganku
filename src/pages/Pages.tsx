@@ -20,24 +20,6 @@ export function Segera({ t, s }: { t: string; s: string }) {
   )
 }
 
-export function Beranda() {
-  const { user } = useAuth()
-  const nama = user?.displayName?.split(' ')[0] ?? ''
-  return (
-    <>
-      <Judul t={`Halo${nama ? `, ${nama}` : ''}`} s="Fondasi aplikasi sudah siap." />
-      <section className="rounded-[28px] bg-hero p-5 text-white">
-        <p className="kicker !text-white/70">Sekilas hari ini</p>
-        <p className="mt-1 text-4xl font-bold tracking-tight">Rp0</p>
-        <p className="text-white/80">jatah harian yang tersisa</p>
-        <div className="mt-4 h-2 overflow-hidden rounded-full bg-white/15">
-          <div className="h-full w-1/4 rounded-full bg-accent" />
-        </div>
-      </section>
-    </>
-  )
-}
-
 function Seg<T extends string>(p: { value: T; onChange: (v: T) => void; options: { v: T; l: string }[] }) {
   return (
     <div className="flex gap-1 rounded-2xl bg-line p-1">

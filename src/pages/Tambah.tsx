@@ -1,10 +1,10 @@
 import { useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { useAuth } from '../lib/auth'
 import { useData } from '../lib/data'
-import { addTransaction, bumpTemplate, saveTemplate } from '../lib/tx'
+import { addTransaction, bumpTemplate, deleteTransaction, saveTemplate, updateTransaction } from '../lib/tx'
 import { formatRp, kompak, todayWIB } from '../lib/format'
-import type { Template } from '../lib/types'
+import type { NewTx, Template, Tx } from '../lib/types'
 import { Judul } from './Pages'
 
 type Tipe = 'expense' | 'income' | 'transfer'
@@ -35,17 +35,20 @@ function Pilih(p: { label: string; value: string; onChange: (v: string) => void;
   )
 }
 
-export default function Tambah() {
+export default function Tambah({ awal }: { awal?: Tx }) {
+  const edit = !!awal
   const { user } = useAuth()
   const nav = useNavigate()
+  const [sp] = useSearchParams()
+  const tgl = sp.get('tgl')
   const { wallets, categories, templates, error } = useData()
-  const [tipe, setTipe] = useState<Tipe>('expense')
-  const [digits, setDigits] = useState('')
-  const [catId, setCatId] = useState('')
-  const [wId, setWId] = useState('')
-  const [toId, setToId] = useState('')
-  const [tanggal, setTanggal] = useState(todayWIB)
-  const [catatan, setCatatan] = useState('')
+  const [tipe, setTipe] = useState<Tipe>(awal && awal.type !== 'adjustment' ? awal.type : sp.get('tipe') === 'transfer' ? 'transfer' : 'expense')
+  const [digits, setDigits] = useState(awal ? String(awal.amount) : '')
+  const [catId, setCatId] = useState(awal?.categoryId ?? '')
+  const [wId, setWId] = useState((awal ? (awal.type === 'income' ? awal.walletToId : awal.walletFromId) : '') ?? '')
+  const [toId, setToId] = useState((awal ? (awal.type === 'transfer' ? awal.walletToId : '') : sp.get('ke')) ?? '')
+  const [tanggal, setTanggal] = useState(awal?.date ?? (tgl && /^\d{4}-\d{2}-\d{2}$/.test(tgl) ? tgl : todayWIB()))
+  const [catatan, setCatatan] = useState(awal?.description ?? '')
   const [jadikanTpl, setJadikanTpl] = useState(false)
   const [pesan, setPesan] = useState('')
 
@@ -77,17 +80,18 @@ export default function Tambah() {
   const simpan = (draft: boolean) => {
     if (!uid || amount <= 0) return
     const dasar = { type: tipe, date: tanggal, amount, description: catatan.trim() }
+    let tx: NewTx
     if (draft) {
-      void addTransaction(uid, { ...dasar, status: 'draft', categoryId: null, walletFromId: null, walletToId: null }).catch(gagal)
+      tx = { ...dasar, status: 'draft', categoryId: null, walletFromId: null, walletToId: null }
     } else {
       if (!lengkap) return
       const rinci =
         tipe === 'transfer' ? { categoryId: null, walletFromId: wId, walletToId: toId }
         : tipe === 'expense' ? { categoryId: catId, walletFromId: wId, walletToId: null }
         : { categoryId: catId, walletFromId: null, walletToId: wId }
-      void addTransaction(uid, { ...dasar, ...rinci, status: 'final' }).catch(gagal)
+      tx = { ...dasar, ...rinci, status: 'final' }
       rememberWallet(tipe === 'transfer' ? 'transfer' : catId, wId)
-      if (jadikanTpl) {
+      if (jadikanTpl && !edit) {
         void saveTemplate(uid, {
           label: catatan.trim() || cats.find((c) => c.v === catId)?.l || 'Template',
           type: tipe, categoryId: rinci.categoryId, walletId: wId, toWalletId: tipe === 'transfer' ? toId : null,
@@ -95,13 +99,24 @@ export default function Tambah() {
         }).catch(gagal)
       }
     }
+    if (awal) {
+      void updateTransaction(uid, awal, tx).catch(gagal)
+      nav('/transaksi')
+      return
+    }
+    void addTransaction(uid, tx).catch(gagal)
     setDigits(''); setCatatan(''); setJadikanTpl(false)
     setPesan(draft ? 'Draft tersimpan.' : 'Tersimpan.')
+  }
+  const hapus = () => {
+    if (!awal || !uid || !window.confirm('Hapus transaksi ini? Saldo wallet akan dikoreksi.')) return
+    void deleteTransaction(uid, awal).catch(gagal)
+    nav('/transaksi')
   }
 
   return (
     <>
-      <Judul t="Catat transaksi" s="Isi nominal, lalu simpan." />
+      <Judul t={edit ? 'Ubah transaksi' : 'Catat transaksi'} s={edit ? (awal?.status === 'draft' ? 'Lengkapi draft ini.' : 'Perubahan akan mengoreksi saldo wallet.') : 'Isi nominal, lalu simpan.'} />
       {error && <p role="alert" className="card mb-3 text-bahaya">{error}</p>}
       {(wallets.length === 0 || categories.length === 0) && (
         <p className="card mb-3 text-muted">Belum ada wallet atau kategori. <Link to="/pengaturan" className="font-bold text-ink underline">Atur dulu di sini</Link>.</p>
@@ -115,7 +130,7 @@ export default function Tambah() {
         <p className="kicker">Jumlah</p>
         <output aria-live="polite" className="block font-mono text-5xl font-bold tracking-tight">{formatRp(amount)}</output>
       </div>
-      {templates.length > 0 && (
+      {!edit && templates.length > 0 && (
         <div className="mb-3 flex gap-2 overflow-x-auto pb-1">
           {templates.slice(0, 8).map((t) => (
             <button key={t.id} onClick={() => pakai(t)} className="whitespace-nowrap rounded-2xl border border-line bg-surface px-3.5 py-2.5 text-sm font-bold">
@@ -142,16 +157,23 @@ export default function Tambah() {
           <button key={k} onClick={() => tekan(k)} className="h-12 rounded-2xl border border-line bg-surface font-mono text-lg font-bold active:bg-line">{k}</button>
         ))}
       </div>
-      <label className="mb-3 flex items-center gap-2 text-sm text-muted">
+      {!edit && <label className="mb-3 flex items-center gap-2 text-sm text-muted">
         <input type="checkbox" checked={jadikanTpl} onChange={(e) => setJadikanTpl(e.target.checked)} /> Simpan sebagai template
-      </label>
+      </label>}
       {amount > 0 && !lengkap && <p className="mb-2 text-sm text-muted">Lengkapi kategori dan wallet, atau pakai Catat cepat.</p>}
       <div className="flex gap-2">
-        <button disabled={amount <= 0} onClick={() => simpan(true)} className="h-13 flex-1 rounded-2xl border-[1.5px] border-line bg-surface font-bold disabled:opacity-40">Catat cepat (draft)</button>
+        {(!edit || awal?.status === 'draft') && <button disabled={amount <= 0} onClick={() => simpan(true)} className="h-13 flex-1 rounded-2xl border-[1.5px] border-line bg-surface font-bold disabled:opacity-40">{edit ? 'Simpan draft' : 'Catat cepat (draft)'}</button>}
         <button disabled={!lengkap} onClick={() => simpan(false)} className="h-13 flex-1 rounded-2xl bg-accent font-bold text-on-accent disabled:opacity-40">Simpan</button>
       </div>
       {pesan && <p role="status" className="mt-3 text-center font-bold">{pesan}</p>}
-      <button onClick={() => nav('/')} className="mx-auto mt-3 block text-sm text-muted underline">Selesai, kembali ke Beranda</button>
+      {edit ? (
+        <div className="mt-4 flex justify-between text-sm">
+          <button onClick={() => nav('/transaksi')} className="text-muted underline">Batal</button>
+          <button onClick={hapus} className="font-bold text-bahaya underline">Hapus transaksi</button>
+        </div>
+      ) : (
+        <button onClick={() => nav('/')} className="mx-auto mt-3 block text-sm text-muted underline">Selesai, kembali ke Beranda</button>
+      )}
     </>
   )
 }

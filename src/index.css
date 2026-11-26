@@ -1,5 +1,7 @@
 @import "tailwindcss";
 
+:root { --pos: #2E7D4F; }
+:root[data-mode="dark"] { --pos: #5BD58A; }
 :root,
 :root[data-theme="pink"][data-mode="light"] {
   --bg: #FDF4F6; --sf: #FFFFFF; --hero: #2F2630; --ac: #FFB8B0;
@@ -27,6 +29,7 @@
   --color-ink: var(--t);
   --color-muted: var(--m);
   --color-line: var(--bd);
+  --color-pos: var(--pos);
   --font-sans: "Space Grotesk Variable", system-ui, sans-serif;
   --font-mono: "Space Mono", ui-monospace, monospace;
 }
