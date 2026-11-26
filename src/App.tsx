@@ -7,6 +7,7 @@ import Budget from './pages/Budget'
 import AsetPage from './pages/Aset'
 import Goals from './pages/Goals'
 import Skor from './pages/Skor'
+import Cadangan from './pages/Cadangan'
 import Dompet from './pages/Dompet'
 import Tambah from './pages/Tambah'
 import Pengaturan from './pages/Pengaturan'
@@ -25,6 +26,7 @@ export default function App() {
           <Route path="aset" element={<AsetPage />} />
           <Route path="goals" element={<Goals />} />
           <Route path="skor" element={<Skor />} />
+          <Route path="cadangan" element={<Cadangan />} />
           <Route path="dompet" element={<Dompet />} />
           <Route path="transaksi" element={<Transaksi />} />
           <Route path="transaksi/:id" element={<EditTx />} />
